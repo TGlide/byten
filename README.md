@@ -1,5 +1,9 @@
 # byten
 
+The byte utility for humans.
+
+## Local Development
+
 To install dependencies:
 
 ```bash
