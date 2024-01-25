@@ -2,6 +2,14 @@
   "name": "byten",
   "module": "index.ts",
   "type": "module",
+  "contributors": [
+    {
+      "name": "Thomas G. Lopes"
+    },
+    {
+      "name": "Arman Nik"
+    }
+  ],
   "devDependencies": {
     "bun-types": "latest"
   },
