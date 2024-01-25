@@ -18,10 +18,24 @@ function isValidUnit(unit: unknown): unit is Unit {
   return typeof unit === 'string' && unit in units;
 }
 
-export class Byten {
-  intValue: number;
+export type BytenOptions = {
+  unit?: Unit;
+  base?: Base;
+}
 
-  static validate(unit: Unit, base: Base) {
+const defaultOptions = {
+  unit: 'B',
+  base: 10,
+} satisfies BytenOptions
+
+export type BytenToStringOptions = {
+  precision?: number;
+} & BytenOptions
+
+export class Byten {
+  #intValue: number;
+
+  static validate({ unit, base }: BytenOptions) {
     if (!isValidUnit(unit)) {
       throw new Error(`Invalid unit, must be one of: ${Object.keys(units).join(', ')}`);
     }
@@ -30,17 +44,40 @@ export class Byten {
     }
   }
 
-  constructor(value: number, unit: Unit = 'B', base: Base = 10) {
-    Byten.validate(unit, base);
+  constructor(value: number, options?: BytenOptions) {
+    const o = { ...defaultOptions, ...options };
+    Byten.validate(o);
+    if (value > Number.MAX_SAFE_INTEGER) {
+      throw new Error(`Value is too large, must be less than ${Number.MAX_SAFE_INTEGER}`);
+    }
 
-    const baseValue = base === 10 ? 1000 : 1024;
-    this.intValue = value * Math.pow(baseValue, units[unit]);
+    if (value < Number.MIN_SAFE_INTEGER) {
+      throw new Error(`Value is too small, must be greater than ${Number.MIN_SAFE_INTEGER}`);
+    }
+
+    const baseValue = o.base === 10 ? 1000 : 1024;
+    this.#intValue = value * Math.pow(baseValue, units[o.unit]);
   }
 
-  to(unit: Unit, base: Base = 10): number {
-    Byten.validate(unit, base);
+  to(options?: BytenOptions): number {
+    const o = { ...defaultOptions, ...options };
+    Byten.validate(o);
 
-    const baseValue = base === 10 ? 1000 : 1024;
-    return this.intValue / Math.pow(baseValue, units[unit]);
+    const baseValue = o.base === 10 ? 1000 : 1024;
+    return this.#intValue / Math.pow(baseValue, units[o.unit]);
   }
+
+  toString(options?: BytenToStringOptions): string {
+    const o = { ...defaultOptions, ...options };
+    Byten.validate(o);
+
+    const baseValue = o.base === 10 ? 1000 : 1024;
+    const value = this.#intValue / Math.pow(baseValue, units[o.unit]);
+    const precise = o.precision !== undefined ? value.toFixed(o.precision) : value
+    return `${precise} ${o.unit}`;
+  }
+}
+
+export function byten(value: number, options?: BytenOptions): Byten {
+  return new Byten(value, options);
 }
