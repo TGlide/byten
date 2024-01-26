@@ -1,4 +1,4 @@
-# byten
+# hbyte
 
 The byte utility for humans.
 
